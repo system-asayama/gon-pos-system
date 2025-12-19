@@ -214,7 +214,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///database.db")
 # Heroku の postgres:// を SQLAlchemy 用に postgresql:// へ変換
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-QR_SECRET = os.getenv("QR_SECRET", "supersecret")  # 本番は強固な値に
+QR_SECRET = os.getenv("QR_SECRET")
+if not QR_SECRET:
+    raise RuntimeError("QR_SECRET is required")
 PRINT_DIR = os.getenv("PRINT_DIR", "prints")       # フォールバック出力先
 POS_VERIFY_SCHEMA = os.getenv("POS_VERIFY_SCHEMA", "1") == "1"
 POS_CREATE_TABLES = os.getenv("POS_CREATE_TABLES", "0") == "1"  # 明示時のみ自動作成
@@ -241,7 +243,9 @@ SCHEMA_AUTOGEN = int(os.getenv("SCHEMA_AUTOGEN", "0"))  # 1で自動ALTERを許�
 # -----------------------------------------------------------------------------
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES  # 5MB
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-me")  # 本番はランダムで強固に
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY is required")
 
 
 # -----------------------------------------------------------------------------
@@ -1879,7 +1883,7 @@ def verify_schema_or_create():
             raise RuntimeError(
                 "必要なテーブルが見つかりません。既存DB参照モードのため起動を停止します。\n"
                 f"不足テーブル: {missing}\n"
-                f"DATABASE_URL: {DATABASE_URL}\n"
+                f"DATABASE_URL: ***hidden***\n"
                 "※自動作成したい場合は環境変数 POS_CREATE_TABLES=1 を設定してください。"
             )
 
@@ -13969,7 +13973,7 @@ def admin_initdb():
 </head><body>
   <h2>初期化機能は無効化されています</h2>
   <p>このアプリは「既存の DB を参照するモード」で動作します。テーブル作成やデモ投入は行いません。</p>
-  <p>DATABASE_URL: <code>{{ db_url }}</code></p>
+  <p>DATABASE_URL: <code>***hidden***</code></p>
   <p><a href="{{ url_for('floor') }}">フロアへ戻る</a></p>
 </body></html>
     """, db_url=DATABASE_URL), 403
