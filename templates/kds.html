@@ -336,6 +336,8 @@ function updateStaffCallDisplay() {
   const alertEl = document.getElementById('staff-call-alert');
   const tablesEl = document.getElementById('staff-call-tables');
   
+  console.log('[updateStaffCallDisplay] activeCalls:', activeCalls, 'size:', activeCalls.size);
+  
   if (activeCalls.size > 0) {
     const tableList = Array.from(activeCalls).sort((a, b) => {
       // 数値としてソートを試みる
@@ -344,9 +346,12 @@ function updateStaffCallDisplay() {
       if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
       return a.localeCompare(b);
     });
-    tablesEl.textContent = 'テーブル: ' + tableList.join(', ');
+    const displayText = 'テーブル: ' + tableList.join(', ');
+    console.log('[updateStaffCallDisplay] tableList:', tableList, 'displayText:', displayText);
+    tablesEl.textContent = displayText;
     alertEl.style.display = 'block';
   } else {
+    console.log('[updateStaffCallDisplay] No active calls');
     alertEl.style.display = 'none';
   }
 }
@@ -369,13 +374,16 @@ async function checkStaffCalls(){
     
     if (data && data.ok && data.calls && data.calls.length > 0) {
       // 新しい呼び出しがあれば音声再生と表示追加
+      console.log('[checkStaffCalls] Received calls:', data.calls);
       data.calls.forEach(call => {
+        console.log('[checkStaffCalls] Processing call:', call, 'table_no:', call.table_no, 'timestamp:', call.timestamp, 'lastStaffCallTimestamp:', lastStaffCallTimestamp);
         if (call.timestamp > lastStaffCallTimestamp) {
           lastStaffCallTimestamp = call.timestamp;
-          if (DEBUG_KDS) console.log('[KDS STAFF_CALL] New call from table:', call.table_no);
+          console.log('[checkStaffCalls] New call from table:', call.table_no);
           
           // 呼び出しリストに追加
           activeCalls.add(call.table_no);
+          console.log('[checkStaffCalls] Added to activeCalls, now size:', activeCalls.size);
           updateStaffCallDisplay();
           
           // 音声再生
