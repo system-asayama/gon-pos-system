@@ -976,9 +976,14 @@ document.addEventListener('DOMContentLoaded', () => {
     callStaffBtn.textContent = '呼び出し中...';
     
     try {
+      // テーブル番号を取得（bodyのdata属性または画面表示から）
+      const tableNoFromData = document.body.dataset.tableNo || '';
+      const tableNoFromLabel = document.getElementById('table-label')?.textContent || '';
+      const finalTableNo = tableNoFromData || tableNoFromLabel || '不明';
+      
       const payload = {
         token: token || '',
-        table_no: '{{ order.table_no if order else "" }}'
+        table_no: finalTableNo
       };
       
       const res = await fetch('/api/staff_call', {
