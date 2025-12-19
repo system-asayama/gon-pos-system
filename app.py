@@ -3114,6 +3114,10 @@ def bootstrap_first_store():
 @app.route("/dev-tools")
 @require_sysadmin
 def dev_tools_redirect():
+    import os
+    from flask import abort
+    if os.getenv("ENABLE_DEV_TOOLS") != "1":
+        abort(404)
     # 本体は /dev_tools の dev_tools() を使う
     return redirect(url_for("dev_tools"))
 
@@ -9499,6 +9503,10 @@ def admin_menu_edit(mid):
 @app.route("/__debug/dbinfo")
 @require_admin
 def __debug_dbinfo():
+    import os
+    from flask import abort
+    if os.getenv("ENABLE_DEV_TOOLS") != "1":
+        abort(404)
     u = engine.url
     sqlite_abspath = None
     if u.drivername.startswith("sqlite"):
@@ -9516,6 +9524,10 @@ def __debug_dbinfo():
 @app.route("/__debug/menu/<int:mid>")
 @require_admin
 def __debug_menu(mid):
+    import os
+    from flask import abort
+    if os.getenv("ENABLE_DEV_TOOLS") != "1":
+        abort(404)
     s = SessionLocal()
     try:
         m = s.get(Menu, mid)
@@ -9561,6 +9573,10 @@ def __debug_menu(mid):
 @app.route("/__debug/menu_list")
 @require_admin
 def __debug_menu_list():
+    import os
+    from flask import abort
+    if os.getenv("ENABLE_DEV_TOOLS") != "1":
+        abort(404)
     s = SessionLocal()
     try:
         sid = current_store_id()
@@ -15350,6 +15366,10 @@ def store_master_delete(store_id):
 @app.route("/dev_tools")
 @require_sysadmin
 def dev_tools():
+    import os
+    from flask import abort
+    if os.getenv("ENABLE_DEV_TOOLS") != "1":
+        abort(404)
     """開発者ツール画面"""
     s = SessionLocal()
     try:
