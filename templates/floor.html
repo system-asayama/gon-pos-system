@@ -118,7 +118,7 @@
       {% endif %}
       {% if order_id is not none %}
         {# 印刷ボタン #}
-        <a class="btn" href="{{ url_for('table_detail', table_id=table_id) }}" target="_blank" rel="noopener">🖨️ 明細印刷</a>
+        <a class="btn" href="{{ url_for('bill_print', order_id=order_id) }}" target="_blank" rel="noopener">🖨️ 明細印刷</a>
         
         {# レシートと領収書：会計済みかつ会計完了前のみ表示 #}
         {% if (paid_int > 0) and (not is_closed) %}

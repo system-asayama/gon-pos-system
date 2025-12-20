@@ -16919,6 +16919,78 @@ def __menu_diag():
 
 # --- メイン起動ブロック（__main__） -----------------------------------------------
 # ---------------------------------------------------------------------
+# 明細印刷（会計前）
+# ---------------------------------------------------------------------
+@app.route("/bill/<int:order_id>")
+def bill_print(order_id):
+    """明細印刷画面（会計前にお客様に値段を伝える用）"""
+    sid = current_store_id()
+    if sid is None:
+        return redirect(url_for("admin_login"))
+    
+    s = SessionLocal()
+    try:
+        # 注文情報を取得
+        order = s.query(OrderHeader).options(
+            joinedload(OrderHeader.items).joinedload(OrderItem.menu),
+            joinedload(OrderHeader.table)
+        ).filter(
+            OrderHeader.id == order_id,
+            OrderHeader.store_id == sid
+        ).first()
+        
+        if not order:
+            abort(404)
+        
+        # 店舗情報を取得
+        store = s.get(Store, sid)
+        if not store:
+            abort(404)
+        
+        # テーブル情報を取得
+        table = order.table
+        
+        # 合計金額を再計算（キャンセルを反映）
+        import math
+        subtotal_excl = 0
+        tax_total = 0
+        total_incl = 0
+        
+        CANCEL_WORDS = ("取消", "ｷｬﾝｾﾙ", "キャンセル", "cancel", "void")
+        
+        for item in order.items:
+            qty = int(item.qty or 0)
+            if qty == 0:
+                continue
+            
+            # 「正数量かつ取消ラベル」は合計から除外
+            st = str(item.status or "").lower()
+            if qty > 0 and any(w in st for w in CANCEL_WORDS):
+                continue
+            
+            unit_excl = int(item.unit_price or 0)
+            rate = float(item.tax_rate or 0.10)
+            unit_tax = math.floor(unit_excl * rate)
+            unit_incl = unit_excl + unit_tax
+            
+            subtotal_excl += unit_excl * qty
+            tax_total += unit_tax * qty
+            total_incl += unit_incl * qty
+        
+        return render_template(
+            "bill_print.html",
+            store=store,
+            order=order,
+            table=table,
+            subtotal=int(subtotal_excl),
+            tax=int(tax_total),
+            total=int(total_incl)
+        )
+    finally:
+        s.close()
+
+
+# ---------------------------------------------------------------------
 # レシート印刷
 # ---------------------------------------------------------------------
 @app.route("/receipt/<int:order_id>")
