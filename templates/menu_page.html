@@ -130,6 +130,8 @@
     else (table.table_no if (table is defined and table and (table.table_no is not none))
     else (order.table_no if (order is defined and order) else request.args.get('table_no','')))
   ) }}"
+  data-is-public="{{ 'true' if is_public else 'false' }}"
+  data-user-role="{{ session.get('role', '') }}"
 >
   <header>
     <div class="row">
@@ -147,8 +149,8 @@
     {% set is_staff_or_higher = role in [
       'staff','store_staff','store_admin','tenant_admin','sysadmin','admin','manager'
     ] %}
-    {# QR公開判定：?token=... または /m/<token> #}
-    {% set is_public = (request.args.get('token') or request.path.startswith('/m/')) %}
+    {# QR公開判定：?token=... または /m/<token> かつ スタッフログインではない #}
+    {% set is_public = (request.args.get('token') or request.path.startswith('/m/')) and not is_staff_or_higher %}
 
     <div class="muted" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       テーブル: <span id="table-label">-</span>
@@ -389,7 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlToken  = qs.get('token');
   const pathToken = ((location.pathname.match(/\/m\/([^\/]+)/)||[])[1]) || null;
   const token     = urlToken || pathToken || null;
-  const IS_PUBLIC = !!token;
+  // サーバー側で判定されたis_publicを使用（スタッフログイン時はfalse）
+  const IS_PUBLIC = ds.isPublic === 'true';
 
   // デバッグ
   const DEBUG = ['1','true','yes','on'].includes((qs.get('debug')||'').toLowerCase());
@@ -1012,9 +1015,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // お客様（公開URL）の場合のみ店員呼び出しボタンを表示
+  console.log('[callStaffBtn] IS_PUBLIC:', IS_PUBLIC, 'data-is-public:', ds.isPublic, 'data-user-role:', ds.userRole);
   if (IS_PUBLIC && callStaffBtn) {
+    console.log('[callStaffBtn] ボタンを表示します');
     callStaffBtn.style.display = 'block';
     callStaffBtn.addEventListener('click', callStaff);
+  } else {
+    console.log('[callStaffBtn] ボタンを非表示にします');
   }
 
   // ===== 初期化 =====
