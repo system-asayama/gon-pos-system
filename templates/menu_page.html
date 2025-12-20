@@ -391,8 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlToken  = qs.get('token');
   const pathToken = ((location.pathname.match(/\/m\/([^\/]+)/)||[])[1]) || null;
   const token     = urlToken || pathToken || null;
-  // サーバー側で判定されたis_publicを使用（スタッフログイン時はfalse）
-  const IS_PUBLIC = ds.isPublic === 'true';
+  // トークンがある場合は常にパブリックAPIを使用（スタッフログイン状態に関わらず）
+  const IS_PUBLIC = !!token;
 
   // デバッグ
   const DEBUG = ['1','true','yes','on'].includes((qs.get('debug')||'').toLowerCase());
