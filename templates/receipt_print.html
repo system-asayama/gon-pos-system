@@ -191,15 +191,15 @@
         <div class="receipt-total">
             <div class="total-row">
                 <span>小計</span>
-                <span>¥{{ "{:,}".format(order.subtotal) }}</span>
+                <span>￥{{ "{:,}".format(subtotal) }}</span>
             </div>
             <div class="total-row">
                 <span>消費税</span>
-                <span>¥{{ "{:,}".format(order.tax) }}</span>
+                <span>￥{{ "{:,}".format(tax) }}</span>
             </div>
             <div class="total-row grand">
                 <span>合計</span>
-                <span>¥{{ "{:,}".format(order.total) }}</span>
+                <span>￥{{ "{:,}".format(total) }}</span>
             </div>
         </div>
     </div>

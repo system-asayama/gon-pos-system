@@ -213,8 +213,8 @@
         
         <div class="amount-section">
             <div class="amount-label">下記の通り、正に領収いたしました</div>
-            <div class="amount-value">¥ {{ "{:,}".format(order.total) }}</div>
-            <div class="amount-note">（内消費税 ¥{{ "{:,}".format(order.tax) }}）</div>
+            <div class="amount-value">￥ {{ "{:,}".format(total) }}</div>
+            <div class="amount-note">（内消費税 ￥{{ "{:,}".format(tax) }}）</div>
         </div>
         
         <div class="details-section">
@@ -238,15 +238,15 @@
                     {% endfor %}
                     <tr>
                         <td colspan="2" style="text-align: right; font-weight: bold;">小計</td>
-                        <td class="right">¥{{ "{:,}".format(order.subtotal) }}</td>
+                        <td class="right">￥{{ "{:,}".format(subtotal) }}</td>
                     </tr>
                     <tr>
                         <td colspan="2" style="text-align: right; font-weight: bold;">消費税</td>
-                        <td class="right">¥{{ "{:,}".format(order.tax) }}</td>
+                        <td class="right">￥{{ "{:,}".format(tax) }}</td>
                     </tr>
                     <tr style="background: #f0f0f0;">
                         <td colspan="2" style="text-align: right; font-weight: bold; font-size: 16px;">合計</td>
-                        <td class="right" style="font-weight: bold; font-size: 16px;">¥{{ "{:,}".format(order.total) }}</td>
+                        <td class="right" style="font-weight: bold; font-size: 16px;">￥{{ "{:,}".format(total) }}</td>
                     </tr>
                 </tbody>
             </table>

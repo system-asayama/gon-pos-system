@@ -16950,11 +16950,41 @@ def receipt_print(order_id):
         # テーブル情報を取得
         table = order.table
         
+        # 合計金額を再計算（キャンセルを反映）
+        import math
+        subtotal_excl = 0
+        tax_total = 0
+        total_incl = 0
+        
+        CANCEL_WORDS = ("取消", "ｷｬﾝｾﾙ", "キャンセル", "cancel", "void")
+        
+        for item in order.items:
+            qty = int(item.qty or 0)
+            if qty == 0:
+                continue
+            
+            # 「正数量かつ取消ラベル」は合計から除外
+            st = str(item.status or "").lower()
+            if qty > 0 and any(w in st for w in CANCEL_WORDS):
+                continue
+            
+            unit_excl = int(item.unit_price or 0)
+            rate = float(item.tax_rate or 0.10)
+            unit_tax = math.floor(unit_excl * rate)
+            unit_incl = unit_excl + unit_tax
+            
+            subtotal_excl += unit_excl * qty
+            tax_total += unit_tax * qty
+            total_incl += unit_incl * qty
+        
         return render_template(
             "receipt_print.html",
             store=store,
             order=order,
-            table=table
+            table=table,
+            subtotal=int(subtotal_excl),
+            tax=int(tax_total),
+            total=int(total_incl)
         )
     finally:
         s.close()
@@ -16999,13 +17029,43 @@ def invoice_print(order_id):
         # 宛名（URLパラメータから取得）
         recipient = request.args.get("recipient", "")
         
+        # 合計金額を再計算（キャンセルを反映）
+        import math
+        subtotal_excl = 0
+        tax_total = 0
+        total_incl = 0
+        
+        CANCEL_WORDS = ("取消", "ｷｬﾝｾﾙ", "キャンセル", "cancel", "void")
+        
+        for item in order.items:
+            qty = int(item.qty or 0)
+            if qty == 0:
+                continue
+            
+            # 「正数量かつ取消ラベル」は合計から除外
+            st = str(item.status or "").lower()
+            if qty > 0 and any(w in st for w in CANCEL_WORDS):
+                continue
+            
+            unit_excl = int(item.unit_price or 0)
+            rate = float(item.tax_rate or 0.10)
+            unit_tax = math.floor(unit_excl * rate)
+            unit_incl = unit_excl + unit_tax
+            
+            subtotal_excl += unit_excl * qty
+            tax_total += unit_tax * qty
+            total_incl += unit_incl * qty
+        
         return render_template(
             "invoice_print.html",
             store=store,
             order=order,
             invoice_number=invoice_number,
             issue_date=issue_date,
-            recipient=recipient
+            recipient=recipient,
+            subtotal=int(subtotal_excl),
+            tax=int(tax_total),
+            total=int(total_incl)
         )
     finally:
         s.close()
