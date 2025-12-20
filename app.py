@@ -16879,6 +16879,48 @@ def __menu_diag():
 
 
 # --- メイン起動ブロック（__main__） -----------------------------------------------
+# ---------------------------------------------------------------------
+# レシート印刷
+# ---------------------------------------------------------------------
+@app.route("/receipt/<int:order_id>")
+def receipt_print(order_id):
+    """レシート印刷画面"""
+    sid = current_store_id()
+    if sid is None:
+        return redirect(url_for("admin_login"))
+    
+    s = SessionLocal()
+    try:
+        # 注文情報を取得
+        order = s.query(OrderHeader).options(
+            joinedload(OrderHeader.items).joinedload(OrderItem.menu),
+            joinedload(OrderHeader.table)
+        ).filter(
+            OrderHeader.id == order_id,
+            OrderHeader.store_id == sid
+        ).first()
+        
+        if not order:
+            abort(404)
+        
+        # 店舗情報を取得
+        store = s.get(Store, sid)
+        if not store:
+            abort(404)
+        
+        # テーブル情報を取得
+        table = order.table
+        
+        return render_template(
+            "receipt_print.html",
+            store=store,
+            order=order,
+            table=table
+        )
+    finally:
+        s.close()
+
+
 if __name__ == "__main__":
     # 既存のDBに不足しているカラムを追加する処理
     print("Migrating schema to add new columns...")
