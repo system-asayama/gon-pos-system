@@ -8496,7 +8496,10 @@ def admin_order_summary(order_id: int):
             is_market_price = getattr(menu, "時価", 0) if menu else 0
             actual_price = getattr(d, "実際価格", None)
             
-            app.logger.debug(f"[summary] item_id={getattr(d, 'id', None)} menu={menu} is_market_price={is_market_price} actual_price={actual_price}")
+            if menu:
+                app.logger.debug(f"[summary] item_id={getattr(d, 'id', None)} menu.id={menu.id} menu.name={getattr(menu, '名称', None)} menu.is_market_price={getattr(menu, 'is_market_price', None)} menu.時価={getattr(menu, '時価', None)} is_market_price={is_market_price} actual_price={actual_price}")
+            else:
+                app.logger.debug(f"[summary] item_id={getattr(d, 'id', None)} menu=None")
             
             if is_market_price and actual_price is None:
                 # 時価商品で価格が未設定
