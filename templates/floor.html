@@ -331,22 +331,19 @@ async function openSettleModal(table_id, order_id){
       console.log('[openSettleModal] Market price items:', _settle_ctx.market_price_items);
       const itemNames = _settle_ctx.market_price_items.map(it => `${it.name} x${it.qty}`).join(', ');
       console.log('[openSettleModal] Item names:', itemNames);
-      const go = confirm(`時価商品が含まれています: ${itemNames}\n\n会計前に価格を設定する必要があります。\n価格設定画面を開きますか？`);
-      if (go) {
-        await showMarketPriceModal();
-        // 価格設定後、再度サマリを取得
-        console.log('[openSettleModal] Fetching summary after price setting');
-        const r3 = await fetch(`/admin/order/${order_id}/summary`, {cache:'no-store'});
-        const j3 = await r3.json();
-        console.log('[openSettleModal] Summary after price setting:', j3);
-        if(j3.ok) {
-          _settle_ctx.total = toNum(j3.total);
-          _settle_ctx.remaining = toNum(j3.remaining ?? (_settle_ctx.total - _settle_ctx.paid));
-          _settle_ctx.market_price_items = j3.market_price_items || [];
-          console.log('[openSettleModal] Updated total:', _settle_ctx.total, 'remaining:', _settle_ctx.remaining);
-        }
-      } else {
-        return; // 価格設定をキャンセル
+      // confirmダイアログを削除して直接モーダルを表示
+      alert(`時価商品が含まれています: ${itemNames}\n\n価格を設定してください。`);
+      await showMarketPriceModal();
+      // 価格設定後、再度サマリを取得
+      console.log('[openSettleModal] Fetching summary after price setting');
+      const r3 = await fetch(`/admin/order/${order_id}/summary`, {cache:'no-store'});
+      const j3 = await r3.json();
+      console.log('[openSettleModal] Summary after price setting:', j3);
+      if(j3.ok) {
+        _settle_ctx.total = toNum(j3.total);
+        _settle_ctx.remaining = toNum(j3.remaining ?? (_settle_ctx.total - _settle_ctx.paid));
+        _settle_ctx.market_price_items = j3.market_price_items || [];
+        console.log('[openSettleModal] Updated total:', _settle_ctx.total, 'remaining:', _settle_ctx.remaining);
       }
     }
 
