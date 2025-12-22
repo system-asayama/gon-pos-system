@@ -8505,7 +8505,7 @@ def admin_order_summary(order_id: int):
                 # 時価商品で価格が未設定
                 market_price_items.append({
                     "id": getattr(d, "id", None),
-                    "name": getattr(menu, "名称", "") if menu else "",
+                    "name": menu.name if menu else "",
                     "qty": qty,
                 })
                 # 合計には含めない
