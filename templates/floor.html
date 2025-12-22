@@ -335,12 +335,15 @@ async function openSettleModal(table_id, order_id){
       if (go) {
         await showMarketPriceModal();
         // 価格設定後、再度サマリを取得
+        console.log('[openSettleModal] Fetching summary after price setting');
         const r3 = await fetch(`/admin/order/${order_id}/summary`, {cache:'no-store'});
         const j3 = await r3.json();
+        console.log('[openSettleModal] Summary after price setting:', j3);
         if(j3.ok) {
           _settle_ctx.total = toNum(j3.total);
           _settle_ctx.remaining = toNum(j3.remaining ?? (_settle_ctx.total - _settle_ctx.paid));
           _settle_ctx.market_price_items = j3.market_price_items || [];
+          console.log('[openSettleModal] Updated total:', _settle_ctx.total, 'remaining:', _settle_ctx.remaining);
         }
       } else {
         return; // 価格設定をキャンセル
@@ -574,18 +577,22 @@ async function showMarketPriceModal() {
       // 各時価商品の価格を設定
       for (const { itemId, price } of prices) {
         try {
+          console.log(`[showMarketPriceModal] Setting price for item ${itemId}: ${price}`);
           const r = await fetch(`/admin/order_item/${itemId}/set_price`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ price })
           });
           const j = await r.json();
+          console.log(`[showMarketPriceModal] Response:`, j);
           if (!j.ok) throw new Error(j.error || 'failed');
         } catch (e) {
+          console.error(`[showMarketPriceModal] Error:`, e);
           alert(`価格の設定に失敗しました: ${e.message}`);
           return;
         }
       }
+      console.log('[showMarketPriceModal] All prices set successfully');
       
       modal.style.display = 'none';
       resolve();
