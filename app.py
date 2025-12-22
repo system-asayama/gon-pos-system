@@ -8591,8 +8591,11 @@ def set_market_price(item_id):
     """
     時価商品の実際の価格を設定する
     """
+    app.logger.info("[set_market_price] START item_id=%s", item_id)
     data = request.get_json(force=True) or {}
+    app.logger.info("[set_market_price] data=%s", data)
     price = data.get("price")
+    app.logger.info("[set_market_price] price=%s", price)
     
     if price is None or not isinstance(price, (int, float)) or price < 0:
         return jsonify({"ok": False, "error": "invalid price"}), 400
@@ -8617,8 +8620,10 @@ def set_market_price(item_id):
             return jsonify({"ok": False, "error": "not a market price item"}), 400
         
         # 実際価格を設定
+        app.logger.info("[set_market_price] Setting 実際価格=%s for item_id=%s", int(price), item_id)
         setattr(item, "実際価格", int(price))
         s.commit()
+        app.logger.info("[set_market_price] Successfully committed price for item_id=%s", item_id)
         
         return jsonify({"ok": True})
     except Exception as e:
