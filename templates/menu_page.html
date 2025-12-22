@@ -737,8 +737,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const titleEl = card.querySelector('h3');
       titleEl.textContent = menu.name || '';
       card.querySelector('.muted').textContent = menu.description || '';
-      card.querySelector('.price-incl').innerHTML = `¥${priceFmt(incl)} <small class="muted">(税込)</small>`;
-      card.querySelector('.price-excl').innerHTML = `<small class="muted">税抜</small> ¥${priceFmt(excl)}`;
+      
+      // 時価商品の場合は「時価」と表示
+      if (menu.is_market_price) {
+        card.querySelector('.price-incl').innerHTML = `<strong style="color:#e11d48">時価</strong>`;
+        card.querySelector('.price-excl').innerHTML = `<small class="muted">価格は会計時に確定</small>`;
+      } else {
+        card.querySelector('.price-incl').innerHTML = `¥${priceFmt(incl)} <small class="muted">(税込)</small>`;
+        card.querySelector('.price-excl').innerHTML = `<small class="muted">税抜</small> ¥${priceFmt(excl)}`;
+      }
 
       // ▼ 提供停止の見た目とボタン無効化
       const stopped = Number(menu.available||0) !== 1;

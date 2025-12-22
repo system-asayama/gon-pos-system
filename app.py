@@ -12055,6 +12055,7 @@ def menu_page(tenant_slug, token):
                     "price_incl": price_incl,
                     "photo_url": m.photo_url,
                     "description": m.description,
+                    "is_market_price": getattr(m, "is_market_price", 0),
                 })
             template_vars = {
                 "store": store_info,
