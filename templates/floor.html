@@ -202,8 +202,23 @@
   </div>
 </div>
 
+<!-- ================= モーダル（時価商品の価格設定） ================= -->
+<div id="market-price-modal" class="modal" style="display:none">
+  <div class="modal-body">
+    <h3>時価商品の価格設定</h3>
+    <p class="small muted">以下の時価商品の価格（税抜）を入力してください。</p>
+    
+    <div id="market-price-items" style="margin-top:12px"></div>
+    
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="btn primary" id="btn-save-market-prices">保存</button>
+      <button class="btn sub" id="btn-cancel-market-prices">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <script>
-let _settle_ctx = { table_id: null, order_id: null, total: 0, paid: 0, remaining: 0, methods: [] };
+let _settle_ctx = { table_id: null, order_id: null, total: 0, paid: 0, remaining: 0, methods: [], market_price_items: [] };
 
 function yen(n){ try{ return '¥' + Number(n).toLocaleString('ja-JP'); }catch(e){ return '¥' + n; } }
 
@@ -308,6 +323,26 @@ async function openSettleModal(table_id, order_id){
     _settle_ctx.total = toNum(sm.total);
     _settle_ctx.paid = toNum(sm.paid);
     _settle_ctx.remaining = toNum(sm.remaining ?? (_settle_ctx.total - _settle_ctx.paid));
+    _settle_ctx.market_price_items = sm.market_price_items || [];
+
+    // 時価商品がある場合は警告を表示
+    if (_settle_ctx.market_price_items.length > 0) {
+      const itemNames = _settle_ctx.market_price_items.map(it => `${it.name} x${it.qty}`).join(', ');
+      const go = confirm(`時価商品が含まれています: ${itemNames}\n\n会計前に価格を設定する必要があります。\n価格設定画面を開きますか？`);
+      if (go) {
+        await showMarketPriceModal();
+        // 価格設定後、再度サマリを取得
+        const r3 = await fetch(`/admin/order/${order_id}/summary`, {cache:'no-store'});
+        const j3 = await r3.json();
+        if(j3.ok) {
+          _settle_ctx.total = toNum(j3.total);
+          _settle_ctx.remaining = toNum(j3.remaining ?? (_settle_ctx.total - _settle_ctx.paid));
+          _settle_ctx.market_price_items = j3.market_price_items || [];
+        }
+      } else {
+        return; // 価格設定をキャンセル
+      }
+    }
 
     document.getElementById('settle-summary').innerHTML =
       `合計: <strong>${yen(_settle_ctx.total)}</strong> ／ 既払: <strong>${yen(_settle_ctx.paid)}</strong> ／ 残額: <strong>${yen(_settle_ctx.remaining)}</strong>`;
@@ -491,3 +526,72 @@ async function resetSession(order_id){
 }
 </script>
 {% endblock %}
+
+/* ========== 時価商品の価格設定モーダル ========== */
+async function showMarketPriceModal() {
+  const items = _settle_ctx.market_price_items || [];
+  if (items.length === 0) {
+    alert('時価商品がありません。');
+    return;
+  }
+  
+  const modal = document.getElementById('market-price-modal');
+  const container = document.getElementById('market-price-items');
+  container.innerHTML = '';
+  
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'market-price-row';
+    row.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:10px;';
+    row.innerHTML = `
+      <span style="flex:1">${item.name} x${item.qty}</span>
+      <input type="number" min="0" step="1" placeholder="価格（税抜）" data-item-id="${item.id}" style="width:150px; padding:8px;">
+    `;
+    container.appendChild(row);
+  });
+  
+  modal.style.display = 'flex';
+  
+  return new Promise((resolve) => {
+    document.getElementById('btn-save-market-prices').onclick = async () => {
+      const inputs = container.querySelectorAll('input[type="number"]');
+      const prices = [];
+      
+      for (const input of inputs) {
+        const itemId = input.dataset.itemId;
+        const price = Number(input.value || 0);
+        
+        if (price <= 0) {
+          alert('すべての時価商品の価格を入力してください。');
+          return;
+        }
+        
+        prices.push({ itemId, price });
+      }
+      
+      // 各時価商品の価格を設定
+      for (const { itemId, price } of prices) {
+        try {
+          const r = await fetch(`/admin/order_item/${itemId}/set_price`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price })
+          });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || 'failed');
+        } catch (e) {
+          alert(`価格の設定に失敗しました: ${e.message}`);
+          return;
+        }
+      }
+      
+      modal.style.display = 'none';
+      resolve();
+    };
+    
+    document.getElementById('btn-cancel-market-prices').onclick = () => {
+      modal.style.display = 'none';
+      resolve();
+    };
+  });
+}

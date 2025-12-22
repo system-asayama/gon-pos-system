@@ -8435,8 +8435,10 @@ def admin_order_summary(order_id: int):
         if hasattr(Item, "store_id") and sid_eff is not None:
             qi = qi.filter(getattr(Item, "store_id") == sid_eff)
         items = qi.all()
-
-        CANCEL_WORDS = ("取消", "ｷｬﾝｾﾙ", "キャンセル", "cancel", "void")
+        CANCEL_WORDS = ("取消", "ｷﾔﾞﾝｾﾙ", "キャンセル", "cancel", "void")
+        
+        # 時価商品のリスト（actual_priceが未設定のもの）
+        market_price_items = []
 
         for d in items:
             qty = int(getattr(d, "qty", None) or getattr(d, "数量", None) or 0)
@@ -8460,6 +8462,26 @@ def admin_order_summary(order_id: int):
                 or getattr(getattr(d, "menu", None), "tax_rate", None)
                 or 0.10
             )
+            
+            # 時価商品の場合、actual_priceを使用
+            menu = getattr(d, "menu", None)
+            is_market_price = getattr(menu, "is_market_price", 0) if menu else 0
+            actual_price = getattr(d, "actual_price", None)
+            
+            if is_market_price and actual_price is None:
+                # 時価商品で価格が未設定
+                market_price_items.append({
+                    "id": getattr(d, "id", None),
+                    "name": getattr(d, "name", None) or (getattr(menu, "name", "") if menu else ""),
+                    "qty": qty,
+                })
+                # 合計には含めない
+                continue
+            
+            if is_market_price and actual_price is not None:
+                # 時価商品で価格が設定済み
+                unit_excl = int(actual_price)
+            
             unit_tax  = math.floor(unit_excl * rate)
             unit_incl = unit_excl + unit_tax
 
@@ -8497,6 +8519,7 @@ def admin_order_summary(order_id: int):
             "paid": int(paid),
             "remaining": int(remaining),
             "status": getattr(h, "status", ""),
+            "market_price_items": market_price_items,  # 時価商品リスト
             # 日本語キー（互換）
             "小計": int(subtotal_excl),
             "税額": int(tax_total),
@@ -8526,6 +8549,51 @@ def admin_order_summary(order_id: int):
 
 
 
+
+
+# --- 時価商品の価格更新 -----------------------------
+@app.route("/admin/order_item/<int:item_id>/set_price", methods=["POST"])
+@require_store_admin
+def set_market_price(item_id):
+    """
+    時価商品の実際の価格を設定する
+    """
+    data = request.get_json(force=True) or {}
+    price = data.get("price")
+    
+    if price is None or not isinstance(price, (int, float)) or price < 0:
+        return jsonify({"ok": False, "error": "invalid price"}), 400
+    
+    s = SessionLocal()
+    try:
+        item = s.get(OrderItem, item_id)
+        if not item:
+            return jsonify({"ok": False, "error": "item not found"}), 404
+        
+        # 店舗スコープ検証
+        sid = current_store_id()
+        if hasattr(OrderItem, "store_id") and sid is not None:
+            if getattr(item, "store_id", None) != sid:
+                return jsonify({"ok": False, "error": "forbidden"}), 403
+        
+        # 時価商品かどうか確認
+        menu = getattr(item, "menu", None)
+        is_market_price = getattr(menu, "is_market_price", 0) if menu else 0
+        
+        if not is_market_price:
+            return jsonify({"ok": False, "error": "not a market price item"}), 400
+        
+        # actual_priceを設定
+        item.actual_price = int(price)
+        s.commit()
+        
+        return jsonify({"ok": True})
+    except Exception as e:
+        s.rollback()
+        app.logger.exception("[set_market_price] %s", e)
+        return jsonify({"ok": False, "error": "internal error"}), 500
+    finally:
+        s.close()
 
 
 # --- 分割会計（取消除外の残額を基準に検証） -----------------------------
@@ -16977,6 +17045,15 @@ def bill_print(order_id):
             
             unit_excl = int(item.unit_price or 0)
             rate = float(item.tax_rate or 0.10)
+            
+            # 時価商品の場合、actual_priceを使用
+            menu = item.menu
+            is_market_price = getattr(menu, "is_market_price", 0) if menu else 0
+            actual_price = getattr(item, "actual_price", None)
+            
+            if is_market_price and actual_price is not None:
+                unit_excl = int(actual_price)
+            
             unit_tax = math.floor(unit_excl * rate)
             unit_incl = unit_excl + unit_tax
             
@@ -17049,6 +17126,15 @@ def receipt_print(order_id):
             
             unit_excl = int(item.unit_price or 0)
             rate = float(item.tax_rate or 0.10)
+            
+            # 時価商品の場合、actual_priceを使用
+            menu = item.menu
+            is_market_price = getattr(menu, "is_market_price", 0) if menu else 0
+            actual_price = getattr(item, "actual_price", None)
+            
+            if is_market_price and actual_price is not None:
+                unit_excl = int(actual_price)
+            
             unit_tax = math.floor(unit_excl * rate)
             unit_incl = unit_excl + unit_tax
             
@@ -17128,6 +17214,15 @@ def invoice_print(order_id):
             
             unit_excl = int(item.unit_price or 0)
             rate = float(item.tax_rate or 0.10)
+            
+            # 時価商品の場合、actual_priceを使用
+            menu = item.menu
+            is_market_price = getattr(menu, "is_market_price", 0) if menu else 0
+            actual_price = getattr(item, "actual_price", None)
+            
+            if is_market_price and actual_price is not None:
+                unit_excl = int(actual_price)
+            
             unit_tax = math.floor(unit_excl * rate)
             unit_incl = unit_excl + unit_tax
             
