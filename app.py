@@ -6900,12 +6900,17 @@ def table_detail(table_id):
 
         def _item_to_dict(it):
             qty = _to_int(_first(getattr(it, "qty", None), getattr(it, "数量", None)), 1)
-            unit_excl = _to_int(_first(
-                getattr(it, "unit_price", None),
-                getattr(it, "税抜単価", None),
-                getattr(it, "price_excl", None),
-                getattr(it, "price", None),
-            ), 0)
+            # 時価商品の場合、actual_price（実際価格）を優先する
+            actual_price = getattr(it, "actual_price", None)
+            if actual_price is not None:
+                unit_excl = _to_int(actual_price, 0)
+            else:
+                unit_excl = _to_int(_first(
+                    getattr(it, "unit_price", None),
+                    getattr(it, "税抜単価", None),
+                    getattr(it, "price_excl", None),
+                    getattr(it, "price", None),
+                ), 0)
             
             # menuリレーションへのアクセスをtry-exceptで保護
             menu_tax_rate = None
