@@ -6974,6 +6974,15 @@ def table_detail(table_id):
                 ""
             )
             
+            # 時価商品かどうかを判定：unit_priceが0かつactual_priceがNullまたは0
+            original_unit_price = _to_int(_first(
+                getattr(it, "unit_price", None),
+                getattr(it, "税抜単価", None),
+                getattr(it, "price_excl", None),
+                getattr(it, "price", None),
+            ), 0)
+            is_market_price = (original_unit_price == 0 and (actual_price is None or actual_price == 0))
+            
             result = {
                 "id": item_id,
                 "種類": "item",
@@ -6986,6 +6995,7 @@ def table_detail(table_id):
                 "状態": _status_label(it),
                 "メモ": memo,
                 "写真URL": photo_url,
+                "is_market_price": is_market_price,
                 "_raw": it,
             }
             
