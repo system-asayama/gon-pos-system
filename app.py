@@ -8598,10 +8598,14 @@ def set_market_price(item_id):
     data = request.get_json(force=True) or {}
     app.logger.info("[set_market_price] data=%s", data)
     price = data.get("price")
-    app.logger.info("[set_market_price] price=%s", price)
+    price_mode = data.get("price_mode", "excl")  # "excl" or "incl"
+    app.logger.info("[set_market_price] price=%s, price_mode=%s", price, price_mode)
     
     if price is None or not isinstance(price, (int, float)) or price < 0:
         return jsonify({"ok": False, "error": "invalid price"}), 400
+    
+    if price_mode not in ("excl", "incl"):
+        return jsonify({"ok": False, "error": "invalid price_mode"}), 400
     
     s = SessionLocal()
     try:
@@ -8622,9 +8626,27 @@ def set_market_price(item_id):
         if not is_market_price:
             return jsonify({"ok": False, "error": "not a market price item"}), 400
         
+        # 税率を取得
+        tax_rate = getattr(menu, "tax_rate", None) or getattr(menu, "税率", None) or 0.10
+        app.logger.info("[set_market_price] tax_rate=%s", tax_rate)
+        
+        # 税込/税抜モードに応じて税抜価格を計算
+        if price_mode == "incl":
+            # 税込価格が入力された場合、税抜価格を逆算
+            from decimal import Decimal, ROUND_DOWN
+            price_decimal = Decimal(str(price))
+            tax_rate_decimal = Decimal(str(tax_rate))
+            # 税抜 = 税込 / (1 + 税率) を切り捨て
+            actual_price_excl = int((price_decimal / (Decimal('1') + tax_rate_decimal)).quantize(Decimal('1'), rounding=ROUND_DOWN))
+            app.logger.info("[set_market_price] price_mode=incl: input_price=%s -> actual_price_excl=%s", price, actual_price_excl)
+        else:
+            # 税抜価格が入力された場合、そのまま使用
+            actual_price_excl = int(price)
+            app.logger.info("[set_market_price] price_mode=excl: actual_price_excl=%s", actual_price_excl)
+        
         # 実際価格を設定（Pythonの属性名を使用）
-        app.logger.info("[set_market_price] Setting actual_price=%s for item_id=%s", int(price), item_id)
-        item.actual_price = int(price)
+        app.logger.info("[set_market_price] Setting actual_price=%s for item_id=%s", actual_price_excl, item_id)
+        item.actual_price = actual_price_excl
         s.commit()
         app.logger.info("[set_market_price] Successfully committed price for item_id=%s, actual_price=%s", item_id, item.actual_price)
         

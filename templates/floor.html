@@ -206,7 +206,15 @@
 <div id="market-price-modal" class="modal" style="display:none">
   <div class="modal-body">
     <h3>時価商品の価格設定</h3>
-    <p class="small muted">以下の時価商品の価格（税抜）を入力してください。</p>
+    <div style="margin:12px 0; padding:10px; background:#f5f5f5; border-radius:4px;">
+      <label style="font-weight:bold; margin-right:20px;">
+        <input type="radio" name="price-mode" value="excl" checked> 税抜価格で入力
+      </label>
+      <label style="font-weight:bold;">
+        <input type="radio" name="price-mode" value="incl"> 税込価格で入力
+      </label>
+    </div>
+    <p class="small muted">価格を入力してください。</p>
     
     <div id="market-price-items" style="margin-top:12px"></div>
     
@@ -547,7 +555,7 @@ async function showMarketPriceModal() {
     row.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:10px;';
     row.innerHTML = `
       <span style="flex:1">${item.name} x${item.qty}</span>
-      <input type="number" min="0" step="1" placeholder="価格（税抜）" data-item-id="${item.id}" style="width:150px; padding:8px;">
+      <input type="number" min="0" step="1" placeholder="価格" data-item-id="${item.id}" style="width:150px; padding:8px;">
     `;
     container.appendChild(row);
   });
@@ -571,14 +579,18 @@ async function showMarketPriceModal() {
         prices.push({ itemId, price });
       }
       
+      // 税込/税抜モードを取得
+      const priceMode = document.querySelector('input[name="price-mode"]:checked').value;
+      console.log(`[showMarketPriceModal] Price mode: ${priceMode}`);
+      
       // 各時価商品の価格を設定
       for (const { itemId, price } of prices) {
         try {
-          console.log(`[showMarketPriceModal] Setting price for item ${itemId}: ${price}`);
+          console.log(`[showMarketPriceModal] Setting price for item ${itemId}: ${price} (mode: ${priceMode})`);
           const r = await fetch(`/admin/order_item/${itemId}/set_price`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ price })
+            body: JSON.stringify({ price, price_mode: priceMode })
           });
           const j = await r.json();
           console.log(`[showMarketPriceModal] Response:`, j);
@@ -592,6 +604,11 @@ async function showMarketPriceModal() {
       console.log('[showMarketPriceModal] All prices set successfully');
       
       modal.style.display = 'none';
+      
+      // 価格設定後にフロア画面を更新
+      console.log('[showMarketPriceModal] Reloading floor page to reflect price changes');
+      forceReload(true);
+      
       resolve();
     };
     
