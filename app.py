@@ -12628,19 +12628,25 @@ def api_order():
                 continue
 
             memo = (it.get("memo") or "").strip()
+            actual_price = it.get("actual_price")  # 時価商品の実際価格
             m = s.get(Menu, mid)
             if not (m and m.available == 1):
                 app.logger.debug("[api_order] skip item (menu not available): id=%s", mid)
                 continue
 
             rate = resolve_effective_tax_rate_for_menu(s, mid, m.tax_rate)
-            unit = int(m.price)
+            unit = int(m.price)  # 税抜保存単価
+            
+            # 時価商品の場合、actual_priceを使用
+            if actual_price is not None:
+                unit = int(actual_price)
+                app.logger.info("[api_order] market price item: menu_id=%s actual_price=%s", mid, unit)
 
             new_item = OrderItem(
                 order_id=order.id,
                 menu_id=mid,
                 qty=qty,
-                unit_price=unit,
+                unit_price=unit,   # 税抜単価
                 tax_rate=rate,
                 memo=memo,
                 status="新規",
@@ -12649,6 +12655,10 @@ def api_order():
             # 店舗IDを設定（Pythonの属性名を使用）
             if store_id is not None and hasattr(new_item, "store_id"):
                 new_item.store_id = store_id
+            
+            # actual_priceをOrderItemに保存
+            if actual_price is not None and hasattr(new_item, 'actual_price'):
+                new_item.actual_price = int(actual_price)
             s.add(new_item)
             s.flush()  # IDを確定
             
