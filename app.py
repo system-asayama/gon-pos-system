@@ -6974,14 +6974,23 @@ def table_detail(table_id):
                 ""
             )
             
-            # 時価商品かどうかを判定：unit_priceが0かつactual_priceがNullまたは0
+            # 時価商品かどうかを判定：menu.is_market_priceを優先、なければunit_priceが0を基準にする
             original_unit_price = _to_int(_first(
                 getattr(it, "unit_price", None),
-                getattr(it, "税抜単価", None),
+                getattr(it, "税抜单価", None),
                 getattr(it, "price_excl", None),
                 getattr(it, "price", None),
             ), 0)
-            is_market_price = (original_unit_price == 0 and (actual_price is None or actual_price == 0))
+            # menuオブジェクトからis_market_priceを取得
+            menu_is_market_price = False
+            try:
+                menu_obj = getattr(it, "menu", None)
+                if menu_obj:
+                    menu_is_market_price = bool(getattr(menu_obj, "is_market_price", 0))
+            except Exception:
+                pass
+            # 時価商品の判定：menu.is_market_price=True または original_unit_price=0
+            is_market_price = menu_is_market_price or (original_unit_price == 0)
             
             result = {
                 "id": item_id,
