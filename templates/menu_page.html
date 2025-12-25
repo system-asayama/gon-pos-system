@@ -747,7 +747,8 @@ document.addEventListener('DOMContentLoaded', () => {
       card.querySelector('.muted').textContent = menu.description || '';
       
       // 時価商品の場合は「時価」と表示
-      if (menu.is_market_price) {
+      // is_market_priceフラグまたは価格が0円の場合を時価商品と判定
+      if (menu.is_market_price || (excl === 0 && incl === 0)) {
         card.querySelector('.price-incl').innerHTML = `<strong style="color:#e11d48">時価</strong>`;
         card.querySelector('.price-excl').innerHTML = `<small class="muted">価格は会計時に確定</small>`;
       } else {
