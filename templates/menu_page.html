@@ -1121,14 +1121,15 @@ async function openOptionModal(menu) {
   // 時価商品の場合の処理
   // is_market_priceフラグまたは価格が0円の場合を時価商品と判定
   if (menu.is_market_price || menu.price_excl === 0 || (menu.price_incl === 0 && menu.price_excl === 0)) {
+    console.log('[openOptionModal] 時価商品:', menu.name, 'IS_PUBLIC:', IS_PUBLIC, 'isStaff:', isStaff);
     // お客様用ページ（IS_PUBLIC && !isStaff）では価格0円で直接カートに追加
     if (IS_PUBLIC && !isStaff) {
-      if (window.__upsertCartItem) {
-        window.__upsertCartItem(menu, 1);
-      }
+      console.log('[openOptionModal] お客様用：カートに追加');
+      window.__upsertCartItem(menu, 1);
       return;
     }
     // スタッフ用ページでは価格入力モーダルを表示
+    console.log('[openOptionModal] スタッフ用：モーダル表示');
     openMarketPriceModal(menu);
     return;
   }
