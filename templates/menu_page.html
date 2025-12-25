@@ -1099,10 +1099,14 @@ async function openOptionModal(menu) {
   currentMenuForOptions = menu;
   selectedOptions = {};
   
-  // 時価商品の場合は価格入力モーダルを表示
+  // 時価商品の場合の処理
   // is_market_priceフラグまたは価格が0円の場合を時価商品と判定
+  // お客様用ページでは価格入力モーダルを表示せず、価格0円でカートに追加
   if (menu.is_market_price || menu.price_excl === 0 || (menu.price_incl === 0 && menu.price_excl === 0)) {
-    openMarketPriceModal(menu);
+    // お客様用ページでは価格0円でカートに追加
+    if (window.__upsertCartItem) {
+      window.__upsertCartItem(menu, 1);
+    }
     return;
   }
   
