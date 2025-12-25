@@ -6778,8 +6778,8 @@ def table_detail(table_id):
     is_qr_user = False
     sid = None
     
-    # スタッフ権限をチェック
-    is_staff = is_admin_or_staff()
+    # スタッフ権限をチェック（セッションにログイン情報があるか）
+    is_staff = bool(session.get('user_id') or session.get('admin_id') or session.get('store_id'))
     
     if token:
         # QRトークンから店舗IDを取得
