@@ -525,9 +525,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr=document.createElement('tr');
       const memoHtml = it.memo ? `<div class="small muted" style="white-space:pre-wrap; margin-top:4px;">${it.memo}</div>` : '';
       
-      // 時価商品（actual_priceがnullまたは0）の場合、価格修正ボタンを追加
-      const isMarketPrice = it.actual_price !== undefined;
-      const needsPriceEdit = isMarketPrice && (it.actual_price === null || it.actual_price === 0);
+      // 時価商品（is_market_priceフラグがｔｒｕｅ）の場合、価格修正ボタンを追加
+      const isMarketPrice = it.is_market_price === true;
+      const needsPriceEdit = isMarketPrice && (!it.actual_price || it.actual_price === 0);
       // 店員呼び出しボタンの逆条件：お客様用ページかつスタッフではない場合は非表示
       const showPriceButtons = !(IS_PUBLIC && !isStaff);
       const editPriceBtn = (showPriceButtons && needsPriceEdit) ? `<button class="btn" onclick="window.__editPrice(${i})" style="background:#ffc107; color:#000; margin-right:8px;">価格設定</button>` : '';
