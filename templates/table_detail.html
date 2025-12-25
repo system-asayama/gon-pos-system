@@ -101,6 +101,7 @@
         小計(税抜): ¥{{ ns.subtotal }} / 税額: ¥{{ ns.tax }}
       </div>
 
+      {% if not is_qr_user %}
       <div class="small" style="margin-top:6px">
         伝票ステータス:
         <select class="js-hdr-status" data-order-id="{{ hid }}">
@@ -111,6 +112,7 @@
         </select>
         <span class="small muted js-hdr-save-result" data-order-id="{{ hid }}"></span>
       </div>
+      {% endif %}
     </div>
 
     {% if items and items|length > 0 %}
@@ -166,7 +168,7 @@
               <td>{{ qty }}</td>
               <td>
                 税込 ￥{{ incl }}<br><span class="small muted">税抜 ￥{{ excl }}</span>
-                {% if d.get('is_market_price', False) %}
+                {% if not is_qr_user and d.get('is_market_price', False) %}
                   {% if excl == 0 %}
                     <br><button class="btn btn-sm" onclick="openMarketPriceModal({{ did }}, '{{ name }}', {{ hid }})"
                             style="margin-top:4px;font-size:0.8em;padding:2px 6px;background:#fbbf24;color:#000">💰 価格設定</button>
