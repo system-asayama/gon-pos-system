@@ -273,7 +273,7 @@
 {% endif %}
 
 <div style="display: flex; gap: 10px; margin-top: 20px;">
-  {% if orders and orders[0] %}
+  {% if orders and orders[0] and not is_qr_user %}
   <a class="btn" href="{{ url_for('receipt_print', order_id=orders[0].id) }}" target="_blank" style="background: #2563eb; color: white;">
     📝 レシート印刷
   </a>
