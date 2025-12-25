@@ -167,7 +167,11 @@
               </td>
               <td>{{ qty }}</td>
               <td>
-                税込 ￥{{ incl }}<br><span class="small muted">税抜 ￥{{ excl }}</span>
+                {% if d.get('is_market_price', False) and excl == 0 %}
+                  <strong style="color:#e11d48">時価</strong><br><span class="small muted">価格未確定</span>
+                {% else %}
+                  税込 ￥{{ incl }}<br><span class="small muted">税抜 ￥{{ excl }}</span>
+                {% endif %}
                 {% if not is_qr_user and d.get('is_market_price', False) %}
                   {% if excl == 0 %}
                     <br><button class="btn btn-sm" onclick="openMarketPriceModal({{ did }}, '{{ name }}', {{ hid }})"
