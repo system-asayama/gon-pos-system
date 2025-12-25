@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // is_market_priceフラグまたは価格が0円の場合を時価商品と判定
       if (menu.is_market_price || (excl === 0 && incl === 0)) {
         card.querySelector('.price-incl').innerHTML = `<strong style="color:#e11d48">時価</strong>`;
-        card.querySelector('.price-excl').innerHTML = `<small class="muted">価格は会計時に確定</small>`;
+        card.querySelector('.price-excl').innerHTML = `<small class="muted">価格は店員にお尋ねください。</small>`;
       } else {
         card.querySelector('.price-incl').innerHTML = `¥${priceFmt(incl)} <small class="muted">(税込)</small>`;
         card.querySelector('.price-excl').innerHTML = `<small class="muted">税抜</small> ¥${priceFmt(excl)}`;
