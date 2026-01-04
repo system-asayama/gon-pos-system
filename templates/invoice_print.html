@@ -7,8 +7,8 @@
     <style>
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 3mm;
+                size: 80mm auto;
+                margin: 0;
             }
             body {
                 margin: 0;
@@ -21,28 +21,22 @@
         
         body {
             font-family: 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
-            font-size: 13px;
-            line-height: 1.5;
-            max-width: 210mm;
+            font-size: 12px;
+            line-height: 1.6;
+            max-width: 80mm;
             margin: 0 auto;
-            padding: 0;
-        }
-        
-        .invoice-container {
-            border: 2px solid #000;
-            padding: 10px;
-            position: relative;
+            padding: 5mm;
         }
         
         .invoice-header {
             text-align: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
         }
         
         .invoice-header h1 {
-            font-size: 28px;
+            font-size: 24px;
             margin: 0;
             font-weight: bold;
             letter-spacing: 8px;
@@ -50,109 +44,109 @@
         
         .invoice-number {
             text-align: right;
-            font-size: 12px;
+            font-size: 11px;
             margin-bottom: 10px;
         }
         
         .recipient-section {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
         }
         
         .recipient-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
-            border-bottom: 2px solid #000;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-            display: inline-block;
-            min-width: 350px;
-            text-align: left;
         }
         
         .amount-section {
             text-align: center;
-            margin: 20px 0;
+            margin: 15px 0;
+            border: 2px solid #000;
+            padding: 10px;
         }
         
         .amount-label {
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 11px;
+            margin-bottom: 5px;
         }
         
         .amount-value {
-            font-size: 32px;
+            font-size: 20px;
             font-weight: bold;
-            border: 3px solid #000;
-            padding: 15px 30px;
-            display: inline-block;
-            min-width: 250px;
+            margin: 5px 0;
         }
         
         .amount-note {
-            font-size: 13px;
-            margin-top: 8px;
-            text-align: center;
+            font-size: 10px;
+            margin-top: 5px;
         }
         
         .details-section {
             margin: 15px 0;
-            padding: 12px;
-            background: #fafafa;
-            border: 1px solid #ddd;
+            font-size: 11px;
         }
         
         .details-section strong {
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .details-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 10px;
         }
         
-        .details-table th,
         .details-table td {
             border: 1px solid #000;
-            padding: 8px 12px;
-            text-align: left;
+            padding: 5px;
+            font-size: 11px;
         }
         
-        .details-table th {
-            background: #f0f0f0;
-            font-weight: bold;
-        }
-        
-        .details-table td.right {
+        .details-table td.label {
             text-align: right;
+            font-weight: bold;
+            width: 50%;
+        }
+        
+        .details-table td.value {
+            text-align: right;
+            width: 50%;
+        }
+        
+        .details-table tr.total {
+            background: #f0f0f0;
+            border-top: 2px solid #000;
+        }
+        
+        .details-table tr.total td {
+            font-weight: bold;
+            font-size: 12px;
+            padding: 8px 5px;
         }
         
         .store-info {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        
-        .store-details {
-            text-align: left;
-            font-size: 12px;
+            margin-top: 15px;
+            font-size: 11px;
             line-height: 1.8;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
         }
         
-        .store-details .store-name {
-            font-size: 16px;
+        .store-info .store-name {
+            font-size: 13px;
             font-weight: bold;
             margin-bottom: 5px;
         }
         
         .stamp-section {
             text-align: center;
+            margin-top: 15px;
         }
         
         .stamp-area {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border: 2px solid #000;
             border-radius: 50%;
             display: inline-block;
@@ -160,7 +154,7 @@
         }
         
         .stamp-label {
-            font-size: 11px;
+            font-size: 10px;
             margin-bottom: 5px;
         }
         
@@ -222,66 +216,67 @@
         <button class="btn" onclick="updateRecipient()" style="margin-top: 10px;">更新</button>
     </div>
     
-    <div class="invoice-container">
-        <div class="invoice-number">
-            No. {{ invoice_number }}
-        </div>
+    <div class="invoice-number">
+        No. {{ invoice_number }}
+    </div>
+    
+    <div class="invoice-header">
+        <h1>領　収　書</h1>
+    </div>
+    
+    <div class="recipient-section">
+        <span class="recipient-name" id="recipient-display">{{ recipient or '　　　　　　　　　　' }}</span> 様
+    </div>
+    
+    <div class="amount-section">
+        <div class="amount-label">下記の通り、正に領収いたしました</div>
+        <div class="amount-value">￥ {{ "{:,}".format(total) }}</div>
+        <div class="amount-note">（内消費税 ￥{{ "{:,}".format(tax) }}）</div>
+    </div>
+    
+    <div class="details-section">
+        <strong>但し書き：</strong> 飲食代として
         
-        <div class="invoice-header">
-            <h1>領　収　書</h1>
-        </div>
-        
-        <div class="recipient-section">
-            <span class="recipient-name" id="recipient-display">{{ recipient or '　　　　　　　　　　　　　　　　' }}</span> 様
-        </div>
-        
-        <div class="amount-section">
-            <div class="amount-label">下記の通り、正に領収いたしました</div>
-            <div class="amount-value">￥ {{ "{:,}".format(total) }}</div>
-            <div class="amount-note">（内消費税 ￥{{ "{:,}".format(tax) }}）</div>
-        </div>
-        
-        <div class="details-section">
-            <strong>但し書き：</strong> 飲食代として
-            
-            <table class="details-table" style="margin-top: 15px;">
-                <tbody>
-                    <tr>
-                        <td style="text-align: right; font-weight: bold; padding: 10px;">小計（税抜）</td>
-                        <td class="right" style="padding: 10px; width: 150px;">￥{{ "{:,}".format(subtotal) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: right; font-weight: bold; padding: 10px;">消費税</td>
-                        <td class="right" style="padding: 10px;">￥{{ "{:,}".format(tax) }}</td>
-                    </tr>
-                    <tr style="background: #f0f0f0; border-top: 2px solid #000;">
-                        <td style="text-align: right; font-weight: bold; font-size: 16px; padding: 12px;">合計（税込）</td>
-                        <td class="right" style="font-weight: bold; font-size: 16px; padding: 12px;">￥{{ "{:,}".format(total) }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="store-info">
-            <div class="store-details">
-                <div>発行日：{{ issue_date }}</div>
-                <div class="store-name">{{ store.name }}</div>
-                {% if store.address %}
-                <div>{{ store.address }}</div>
-                {% endif %}
-                {% if store.phone %}
-                <div>TEL: {{ store.phone }}</div>
-                {% endif %}
-                {% if store.registration_number %}
-                <div>登録番号: {{ store.registration_number }}</div>
-                {% endif %}
-            </div>
-            
-            <div class="stamp-section">
-                <div class="stamp-label">印</div>
-                <div class="stamp-area"></div>
-            </div>
-        </div>
+        <table class="details-table">
+            <tbody>
+                <tr>
+                    <td class="label">小計（税抜）</td>
+                    <td class="value">￥{{ "{:,}".format(subtotal) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">消費税</td>
+                    <td class="value">￥{{ "{:,}".format(tax) }}</td>
+                </tr>
+                <tr class="total">
+                    <td class="label">合計（税込）</td>
+                    <td class="value">￥{{ "{:,}".format(total) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="store-info">
+        <div>発行日：{{ issue_date }}</div>
+        <div class="store-name">{{ store.name }}</div>
+        {% if store.address %}
+        <div>{{ store.address }}</div>
+        {% endif %}
+        {% if store.phone %}
+        <div>TEL: {{ store.phone }}</div>
+        {% endif %}
+        {% if store.registration_number %}
+        <div>登録番号: {{ store.registration_number }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="stamp-section">
+        <div class="stamp-label">印</div>
+        <div class="stamp-area"></div>
+    </div>
+    
+    <!-- 下部余白確保用：透明な空白文字で余白を作る -->
+    <div style="line-height: 2.0; font-size: 12px; color: white;">
+        &nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>
     </div>
     
     <div class="no-print">
@@ -302,7 +297,7 @@
                 url.searchParams.set('recipient', value);
                 window.history.replaceState({}, '', url);
             } else {
-                display.textContent = '　　　　　　　　　　　　　　　　';
+                display.textContent = '　　　　　　　　　　';
             }
         }
         
