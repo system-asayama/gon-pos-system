@@ -7,8 +7,8 @@
     <style>
         @media print {
             @page {
-                size: A5 landscape;
-                margin: 10mm;
+                size: A4 portrait;
+                margin: 15mm;
             }
             body {
                 margin: 0;
@@ -21,96 +21,100 @@
         
         body {
             font-family: 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 13px;
+            line-height: 1.5;
             max-width: 210mm;
             margin: 0 auto;
-            padding: 10mm;
+            padding: 15mm;
         }
         
         .invoice-container {
             border: 2px solid #000;
-            padding: 15px;
-            min-height: auto;
+            padding: 20px;
             position: relative;
         }
         
         .invoice-header {
             text-align: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
         
         .invoice-header h1 {
-            font-size: 24px;
-            margin: 0 0 5px 0;
+            font-size: 28px;
+            margin: 0;
             font-weight: bold;
+            letter-spacing: 8px;
         }
         
         .invoice-number {
             text-align: right;
             font-size: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         
         .recipient-section {
-            margin-bottom: 12px;
+            margin-bottom: 20px;
         }
         
         .recipient-name {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             border-bottom: 2px solid #000;
-            padding-bottom: 3px;
+            padding-bottom: 5px;
             margin-bottom: 5px;
             display: inline-block;
-            min-width: 250px;
+            min-width: 350px;
             text-align: left;
         }
         
         .amount-section {
             text-align: center;
-            margin: 15px 0;
+            margin: 30px 0;
         }
         
         .amount-label {
             font-size: 14px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
         
         .amount-value {
-            font-size: 24px;
+            font-size: 32px;
             font-weight: bold;
-            border: 2px solid #000;
-            padding: 8px 15px;
+            border: 3px solid #000;
+            padding: 15px 30px;
             display: inline-block;
-            min-width: 180px;
+            min-width: 250px;
         }
         
         .amount-note {
-            font-size: 12px;
-            margin-top: 5px;
+            font-size: 13px;
+            margin-top: 8px;
             text-align: center;
         }
         
         .details-section {
-            margin: 12px 0;
-            border: 1px solid #ddd;
-            padding: 10px;
+            margin: 25px 0;
+            padding: 15px;
             background: #fafafa;
+            border: 1px solid #ddd;
+        }
+        
+        .details-section strong {
+            font-size: 14px;
         }
         
         .details-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         .details-table th,
         .details-table td {
             border: 1px solid #000;
-            padding: 5px 8px;
+            padding: 8px 12px;
             text-align: left;
         }
         
@@ -124,26 +128,40 @@
         }
         
         .store-info {
-            margin-top: 15px;
-            text-align: right;
-            font-size: 11px;
-            line-height: 1.5;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
         
-        .store-info .store-name {
-            font-size: 14px;
+        .store-details {
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        .store-details .store-name {
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+        }
+        
+        .stamp-section {
+            text-align: center;
         }
         
         .stamp-area {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border: 2px solid #000;
             border-radius: 50%;
             display: inline-block;
-            margin-left: 15px;
-            vertical-align: middle;
+            margin-top: 5px;
+        }
+        
+        .stamp-label {
+            font-size: 11px;
+            margin-bottom: 5px;
         }
         
         .no-print {
@@ -214,7 +232,7 @@
         </div>
         
         <div class="recipient-section">
-            <span class="recipient-name" id="recipient-display">{{ recipient or '　　　　　　　　　　' }}</span> 様
+            <span class="recipient-name" id="recipient-display">{{ recipient or '　　　　　　　　　　　　　　　　' }}</span> 様
         </div>
         
         <div class="amount-section">
@@ -226,36 +244,43 @@
         <div class="details-section">
             <strong>但し書き：</strong> 飲食代として
             
-            <table class="details-table" style="margin-top: 20px;">
+            <table class="details-table" style="margin-top: 15px;">
                 <tbody>
                     <tr>
-                        <td style="text-align: right; font-weight: bold; padding: 8px;">小計（税抜）</td>
-                        <td class="right" style="padding: 8px; width: 150px;">￥{{ "{:,}".format(subtotal) }}</td>
+                        <td style="text-align: right; font-weight: bold; padding: 10px;">小計（税抜）</td>
+                        <td class="right" style="padding: 10px; width: 150px;">￥{{ "{:,}".format(subtotal) }}</td>
                     </tr>
                     <tr>
-                        <td style="text-align: right; font-weight: bold; padding: 8px;">消費税</td>
-                        <td class="right" style="padding: 8px;">￥{{ "{:,}".format(tax) }}</td>
+                        <td style="text-align: right; font-weight: bold; padding: 10px;">消費税</td>
+                        <td class="right" style="padding: 10px;">￥{{ "{:,}".format(tax) }}</td>
                     </tr>
                     <tr style="background: #f0f0f0; border-top: 2px solid #000;">
-                        <td style="text-align: right; font-weight: bold; font-size: 16px; padding: 10px;">合計（税込）</td>
-                        <td class="right" style="font-weight: bold; font-size: 16px; padding: 10px;">￥{{ "{:,}".format(total) }}</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 16px; padding: 12px;">合計（税込）</td>
+                        <td class="right" style="font-weight: bold; font-size: 16px; padding: 12px;">￥{{ "{:,}".format(total) }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         
         <div class="store-info">
-            <div>発行日：{{ issue_date }}</div>
-            <div class="store-name">{{ store.name }} <span class="stamp-area"></span></div>
-            {% if store.address %}
-            <div>{{ store.address }}</div>
-            {% endif %}
-            {% if store.phone %}
-            <div>TEL: {{ store.phone }}</div>
-            {% endif %}
-            {% if store.registration_number %}
-            <div>登録番号: {{ store.registration_number }}</div>
-            {% endif %}
+            <div class="store-details">
+                <div>発行日：{{ issue_date }}</div>
+                <div class="store-name">{{ store.name }}</div>
+                {% if store.address %}
+                <div>{{ store.address }}</div>
+                {% endif %}
+                {% if store.phone %}
+                <div>TEL: {{ store.phone }}</div>
+                {% endif %}
+                {% if store.registration_number %}
+                <div>登録番号: {{ store.registration_number }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="stamp-section">
+                <div class="stamp-label">印</div>
+                <div class="stamp-area"></div>
+            </div>
         </div>
     </div>
     
@@ -277,7 +302,7 @@
                 url.searchParams.set('recipient', value);
                 window.history.replaceState({}, '', url);
             } else {
-                display.textContent = '　　　　　　　　　　';
+                display.textContent = '　　　　　　　　　　　　　　　　';
             }
         }
         
